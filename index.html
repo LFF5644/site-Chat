@@ -1,0 +1,26 @@
+<?
+	const {importHead}=globals.functions;
+?><!DOCTYPE html>
+<html>
+	<head>
+		<?=importHead({
+			input,
+			title:"Chat",
+			tabs:2,
+			script:[
+				"https://cdn.socket.io/4.5.4/socket.io.min.js",
+			],
+		})?>
+	</head>
+	<body>
+		<h1 id=h1_chat style="color:red;" title="Keine Verbindung zum Server!">Chat</h1>
+		<textarea id=textarea_chatHistory readonly rows=10 style="width:80%;height:80%;"></textarea>
+		<form id=form_msg>
+			<p>
+				<input type=text id=input_msg>
+				<button id=button_send>SEND</button>
+			</p>
+		</form>
+		<script src="/p/Chat/app.js"></script>
+	</body>
+</html>
