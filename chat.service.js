@@ -23,9 +23,9 @@ this.start=()=>{
 			const login=services.account.authUserByInput({
 				token,
 			});
-			if(!login.allowed){
+			if(!login.allowed||!token){
 				socket.emit("account-err","wrong-token");
-				socket.disconnect();
+				socket.disconnect(true);
 				return;
 			}
 			this.clients[socket.id].account=login.data.account;
@@ -56,14 +56,16 @@ this.start=()=>{
 			});
 			socket.emit("msg-sended");
 		});
-		socket.on("disconnect",()=>{
+		socket.on("disconnect",(silent=false)=>{
 			const client=this.clients[socket.id];
-			socket.broadcast.emit("user-disconnect",{
-				user:{
-					username: client.account.username,
-					nickname: client.account.nickname,
-				},
-			});
+			if(client.account){
+				socket.broadcast.emit("user-disconnect",{
+					user:{
+						username: client.account.username,
+						nickname: client.account.nickname,
+					},
+				});
+			}
 			this.clients[socket.id]=undefined;
 		});
 	});
