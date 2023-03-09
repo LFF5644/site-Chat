@@ -34,7 +34,7 @@ function appendHistory(data){
 		div.classList.add("msg");
 		if(me) div.classList.add("me");
 
-		const h3_nickname=document.createElement("p");
+		const h3_nickname=document.createElement("h3");
 		h3_nickname.classList.add("nickname");
 		h3_nickname.innerText=user.nickname;
 		h3_nickname.title=user.username;
@@ -68,14 +68,18 @@ function appendHistory(data){
 function sendMsg(){
 	const msg=ids.input_msg.value;
 	socket.emit("send-msg",{msg});
-	appendHistory(account.nickname+": "+msg+"\n");
+	appendHistory({
+		type: "msg",
+		text: msg,
+		user: account,
+	});
 }
 
 socket.on("connect",()=>{
 	console.log("connected as "+socket.id);
 	ids.h1_chat.style.color="unset";
 	ids.h1_chat.title="Verbindung zum Server hergestellt!";
-	appendHistory("Verbindung Hergestellt!\n");
+	appendHistory("Verbindung Hergestellt!");
 });
 socket.on("get-token",()=>{
 	socket.emit("get-token",token);
@@ -83,30 +87,35 @@ socket.on("get-token",()=>{
 socket.on("account-err",msg=>{
 	alert("Sie sind NICHT angemeldet der chat kann nur mit einem Account verwendet werden. Klicken Sie jz auf Ok um sich anzumelden!");
 	location.href="/account?goto=Chat";
-	appendHistory("ACCOUNT ERROR!\n");
+	appendHistory("ACCOUNT ERROR!");
 });
 socket.on("receive-msg",data=>{
 	const {user,time,msg}=data;
 	console.log(user.nickname+": "+msg);
-	appendHistory(user.nickname+": "+msg+"\n");
+	appendHistory({
+		type: "msg",
+		text: msg,
+		user,
+		time,
+	});
 });
 socket.on("get-myUser",accountData=>{
 	account=accountData;
-	appendHistory(`Angemeldet als: ${account.nickname} (${account.username})\n`);
+	appendHistory(`Angemeldet als: ${account.nickname} (${account.username})`);
 });
 socket.on("user-disconnect",data=>{
 	const {user}=data;
-	appendHistory(user.nickname+" hat die Verbindung getrennt\n");
+	appendHistory(user.nickname+" hat die Verbindung getrennt");
 });
 socket.on("user-connect",data=>{
 	const {user}=data;
-	appendHistory(user.nickname+" hat sich Verbunden\n");
+	appendHistory(user.nickname+" hat sich Verbunden");
 });
 socket.on("disconnect",()=>{
 	console.log("disconnected");
 	ids.h1_chat.style.color="red";
 	ids.h1_chat.title="Keine Verbindung zum Server!";
-	appendHistory("Verbindung zum Server getrennt\n");
+	appendHistory("Verbindung zum Server getrennt");
 });
 
 ids.form_msg.onsubmit=event=>{
