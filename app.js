@@ -41,7 +41,7 @@ socket.on("receive-msg",data=>{
 socket.on("get-myUser",accountData=>{
 	account=accountData;
 	writeHistory(`Angemeldet als: ${account.nickname} (${account.username})\n`);
-})
+});
 socket.on("disconnect",()=>{
 	console.log("disconnected");
 	ids.h1_chat.style.color="red";
