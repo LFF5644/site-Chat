@@ -42,6 +42,14 @@ socket.on("get-myUser",accountData=>{
 	account=accountData;
 	writeHistory(`Angemeldet als: ${account.nickname} (${account.username})\n`);
 });
+socket.on("user-disconnect",data=>{
+	const {user}=data;
+	writeHistory(user.nickname+" hat die Verbindung getrennt\n");
+});
+socket.on("user-connect",data=>{
+	const {user}=data;
+	writeHistory(user.nickname+" hat sich Verbunden\n");
+});
 socket.on("disconnect",()=>{
 	console.log("disconnected");
 	ids.h1_chat.style.color="red";

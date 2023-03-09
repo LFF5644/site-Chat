@@ -35,6 +35,12 @@ this.start=()=>{
 				username: client.account.username,
 				nickname: client.account.nickname,
 			});
+			socket.broadcast.emit("user-connect",{
+				user:{
+					username: client.account.username,
+					nickname: client.account.nickname,
+				},
+			});
 		});
 		socket.on("send-msg",data=>{
 			const {msg}=data;
@@ -51,6 +57,13 @@ this.start=()=>{
 			socket.emit("msg-sended");
 		});
 		socket.on("disconnect",()=>{
+			const client=this.clients[socket.id];
+			socket.broadcast.emit("user-disconnect",{
+				user:{
+					username: client.account.username,
+					nickname: client.account.nickname,
+				},
+			});
 			this.clients[socket.id]=undefined;
 		});
 	});
