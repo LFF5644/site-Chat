@@ -1,0 +1,61 @@
+/* for all */
+div.chat > div.msg{						/* main div element for all */
+	border: 2px solid orange;
+	border-radius: 15px;
+	background-color: #3571a7;
+	word-wrap: break-word;
+	margin-right: 30%;
+	margin-bottom: 4px;
+}
+div.chat > div.msg > h3.nickname{		/* nickname for all msg */
+	margin: 0;
+	margin-left: 15px;
+	color: white;
+}
+div.chat > div.msg > p.text{			/* msg for all msg */
+	color: black;
+	margin-bottom: 0;
+	margin-top:5px;
+	margin-left: 10px;
+}
+div.chat > div.msg > p.time{			/* time for all msg */
+	text-align: right;
+	margin-top:0;
+	margin-right: 10px;
+	margin-bottom: 10px;
+}
+
+/* for sender */
+div.chat > div.msg.me{					/* main div element for sender */
+	background-color: #009ae5;
+	border-color: olivedrab;
+	margin-left: 30%;
+	margin-right: 0;
+	margin-bottom: 4px;
+}
+div.chat > div.msg.me > h3.nickname{	/* nickname for my msgs */
+	display: none;
+}
+div.chat > div.msg.me > p.text{			/* text for my msgs */
+	margin-left: 10px;
+	margin-bottom:0;
+}
+
+/* info Nachricht */
+div.chat > div.info{
+	border-radius: 15px;
+	border: 2px solid lightgreen;
+	background-color: orange;
+	color: black;
+	margin-bottom: 4px;
+}
+div.chat > div.info > p.text{
+	margin-left: 10px;
+	margin-bottom:0;
+}
+div.chat > div.info > p.time{
+	text-align: right;
+	margin-top:0;
+	margin-right: 10px;
+	margin-bottom: 10px;
+}
