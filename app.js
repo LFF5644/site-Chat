@@ -25,7 +25,6 @@ function appendHistory(data){
 	if(typeof(data)=="string") text=data;
 	if(text) text=text.trim();
 	if(!time) time=Date.now();
-	
 
 	const div=document.createElement("div");
 	div.innerHTML="";
