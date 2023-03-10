@@ -1,4 +1,7 @@
 /* for all */
+#h1_chat{
+	text-align: center;
+}
 div.chat > div.msg{						/* main div element for all */
 	border: 2px solid orange;
 	border-radius: 15px;
@@ -41,7 +44,7 @@ div.chat > div.msg.me > p.text{			/* text for my msgs */
 	margin-bottom:0;
 }
 
-/* info Nachricht */
+/* Info Nachricht */
 div.chat > div.info{
 	border-radius: 15px;
 	border: 2px solid lightgreen;
@@ -58,4 +61,20 @@ div.chat > div.info > p.time{
 	margin-top:0;
 	margin-right: 10px;
 	margin-bottom: 10px;
+}
+
+/* small Info Nachricht */
+div.chat > div.small{
+	border: 2px solid lightgreen;
+	border-radius: 10px;
+	background-color: orange;
+	color: black;
+	margin-bottom: 4px;
+	width: fit-content;
+	text-align: center;
+	margin-right: auto;
+	margin-left: auto;
+}
+div.chat > div.small > p.text{
+	margin: 5px 10px 5px 10px;
 }

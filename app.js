@@ -50,7 +50,7 @@ function appendHistory(data){
 		p_time.innerText=getTime(time);
 		div.appendChild(p_time);
 	}
-	else if(type=="info"||typeof(data)=="string"){
+	else if(type=="info"){
 		div.classList.add("info");
 
 		const p_text=document.createElement("p");
@@ -62,6 +62,14 @@ function appendHistory(data){
 		p_time.classList.add("time");
 		p_time.innerText=getTime(time);
 		div.appendChild(p_time);
+	}
+	else if(type=="small"||typeof(data)=="string"){
+		div.classList.add("small");
+
+		const p_text=document.createElement("p");
+		p_text.classList.add("text");
+		p_text.innerText=text;
+		div.appendChild(p_text);
 	}
 	ids.div_chat.appendChild(div);
 }
@@ -79,7 +87,7 @@ socket.on("connect",()=>{
 	console.log("connected as "+socket.id);
 	ids.h1_chat.style.color="unset";
 	ids.h1_chat.title="Verbindung zum Server hergestellt!";
-	appendHistory("Verbindung Hergestellt!");
+	appendHistory("Verbindung hergestellt!");
 });
 socket.on("get-token",()=>{
 	socket.emit("get-token",token);
