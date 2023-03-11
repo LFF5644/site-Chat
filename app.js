@@ -77,7 +77,6 @@ function appendHistory(data){
 		if(!me){ // other user send msg
 			playSound("msg");
 			vibrate(1e3);
-			
 		}
 	}
 	else if(type=="info"){
