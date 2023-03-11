@@ -1,7 +1,9 @@
 const socket=io({path:"/bind/socket/Chat"});
 const token=unescape('<?=ESC(input.token)?>');
 const history=[];
+let clients={};
 let account=null;
+let display="chat";
 
 const ids={
 	h1_chat: document.getElementById("h1_chat"),
@@ -10,13 +12,47 @@ const ids={
 	form_msg: document.getElementById("form_msg"),
 	div_chat: document.getElementById("div_chat"),
 	img_settings: document.getElementById("img_settings"),
+	span_socketConnected: document.getElementById("span_socketConnected"),
+	ul_onlineClients: document.getElementById("ul_onlineClients"),
 };
+
+const displays={
+	chat: document.getElementById("div_display_chat"),
+	settings: document.getElementById("div_display_settings"),
+};
+
 const sounds={
 	msg: "/files/sounds/ding.mp3",
 	connect: "/files/sounds/addUSB.wav",
 	disconnect: "/files/sounds/removeUSB.wav",
 };
 
+function changeDisplay(to){
+	if(to==display) return;
+	document.getElementById("div_display_"+display).classList.add("hidden");
+	document.getElementById("div_display_"+to).classList.remove("hidden");
+	display=to;
+	onDisplayChange();
+}
+function onDisplayChange(){
+	console.log("show now display "+display);
+	if(display=="chat"){
+		// if display changed to "chat"
+		scrollTo(0,document.body.scrollHeight);
+	}	
+	else if(display=="settings"){
+		// if display changed to "settings"
+		scrollTo(0,0);
+		const html=(Object.keys(clients)
+			.map(item=>clients[item].user)
+			.map(item=>`<li title="${item.username}">${item.nickname}</li>`)
+			.join("")
+		);
+		ids.span_socketConnected.innerText=socket.connected?"Verbunden":"Nicht verbunden!";
+		ids.span_socketConnected.style.color=socket.connected?"green":"red";
+		ids.ul_onlineClients.innerHTML=html;
+	}
+}
 function getTime(time=Date.now()){
 	const date=new Date(time);
 	let str=String(date.getHours()).padStart(2,"0");
@@ -75,7 +111,7 @@ function appendHistory(data){
 		p_time.classList.add("time");
 		p_time.innerText=getTime(time);
 		div.appendChild(p_time);
-		if(!me){ // other user send msg
+		if(!me&&display=="chat"){ // if other user send msg & current showing is chat
 			playSound("msg");
 			vibrate(1e3);
 		}
@@ -102,7 +138,7 @@ function appendHistory(data){
 		div.appendChild(p_text);
 	}
 	ids.div_chat.appendChild(div);
-	scrollTo(0,document.body.scrollHeight);
+	if(display=="chat") scrollTo(0,document.body.scrollHeight);
 }
 function sendMsg(){
 	const msg=ids.input_msg.value;
@@ -142,14 +178,27 @@ socket.on("get-myUser",accountData=>{
 	account=accountData;
 	appendHistory(`Angemeldet als: ${account.nickname} (${account.username})`);
 });
-socket.on("user-disconnect",data=>{
-	const {user}=data;
-	appendHistory(user.nickname+" hat die Verbindung getrennt");
+socket.on("user-disconnect",client=>{
+	const key=client.socketId;
+	delete clients[key];
+	appendHistory(client.user.nickname+" hat die Verbindung getrennt");
+	if(display=="settings"){
+		onDisplayChange();
+	}
 });
-socket.on("user-connect",data=>{
-	const {user}=data;
-	appendHistory(user.nickname+" hat sich Verbunden");
+socket.on("user-connect",client=>{
+	const key=client.socketId;
+	client.socketId=undefined;
+	clients[key]=client;
+	appendHistory(client.user.nickname+" hat sich Verbunden");
+	if(display=="settings"){
+		onDisplayChange();
+	}
 });
+socket.on("clients-connected",data=>{
+	console.log(data);
+	clients=data;
+})
 socket.on("disconnect",()=>{
 	console.log("disconnected");
 	ids.h1_chat.style.color="red";

@@ -1,6 +1,7 @@
 <?
 	const {importHead}=globals.functions;
 ?><!DOCTYPE html>
+<!--Created 09.03.2023 at 09:14-->
 <html>
 	<head>
 		<?=importHead({
@@ -23,11 +24,23 @@
 			<br>
 			<form id=form_msg>
 				<p id=p_send>
-					<img id=img_settings alt=settings/info src=/files/img/settingsIconBlack32_box.jpg onclick="alert('Diese Funktion kommt noch ...')">
 					<input style="flex:1;" type=text id=input_msg autocomplete=off autofocus>
+					<img id=img_settings alt=settings/info src=/files/img/settingsIconBlack32_box.jpg style="margin-right: 5px;" onclick="changeDisplay('settings')">
 					<button id=button_send>></button>
 				</p>
 			</form>
+		</div>
+		<div id=div_display_settings class=hidden>
+			<h1>Info</h1>
+			<p>Verbindungsstatus: <span id=span_socketConnected style="color:red;">Nicht verbunden!</span></p>
+			<p>Online: 
+				<ul id=ul_onlineClients>
+				</ul>
+			</p>
+			<p>
+				<button onclick="onDisplayChange();">Refresh</button>
+				<button onclick="changeDisplay('chat');">Zum Chat</button>
+			</p>
 		</div>
 		<script src=/p/Chat/app.js></script>
 	</body>
