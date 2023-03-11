@@ -71,6 +71,7 @@ function appendHistory(data){
 		div.appendChild(p_text);
 	}
 	ids.div_chat.appendChild(div);
+	scrollTo(0,document.body.scrollHeight);
 }
 function sendMsg(){
 	const msg=ids.input_msg.value;

@@ -5,13 +5,14 @@ button{
 	cursor: pointer;
 }
 input{
-	background-color: initial;
+	
 }
 #p_send{
 	display: flex;
 }
 #input_msg{
 	flex: 1;
+	margin-right: 5px;
 }
 #button_send{
 	font-size: 120%;
