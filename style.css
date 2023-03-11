@@ -5,7 +5,8 @@ button{
 	cursor: pointer;
 }
 input{
-	
+	font-family: Minecraft, Arial, Helvetica, sans-serif;
+	font-size: large;
 }
 #p_send{
 	display: flex;
