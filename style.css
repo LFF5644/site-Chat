@@ -1,19 +1,26 @@
+@font-face{
+	/* Using the Minecraft Font! */
+	font-family: Minecraft;
+	src: url("/files/fonts/Minecraft.otf");
+}
 body{
 	margin-bottom: 30px;
 }
 button{
 	cursor: pointer;
 }
-input{
-	font-family: Minecraft, Arial, Helvetica, sans-serif;
-	font-size: large;
-}
 #p_send{
 	display: flex;
 }
 #input_msg{
-	flex: 1;
+	font-family: Minecraft, Arial, Helvetica, sans-serif;
 	margin-right: 5px;
+	font-size: 120%;
+	flex: 1;
+	color:currentColor;
+	background-color: transparent;
+	border-color:gold;
+	border-width: 4px;
 }
 #button_send{
 	font-size: 120%;
