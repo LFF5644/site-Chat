@@ -17,15 +17,18 @@
 		})?>
 	</head>
 	<body>
-		<h1 id=h1_chat style="color:red;" title="Keine Verbindung zum Server!">Chat</h1>
-		<div class=chat id=div_chat></div>
-		<br>
-		<form id=form_msg>
-			<p id=p_send>
-				<input style="flex:1;" type=text id=input_msg autocomplete=off autofocus>
-				<button id=button_send>></button>
-			</p>
-		</form>
-		<script src="/p/Chat/app.js"></script>
+		<div id=div_display_chat>
+			<h1 id=h1_chat style="color:red;" title="Keine Verbindung zum Server!">Chat</h1>
+			<div class=chat id=div_chat></div>
+			<br>
+			<form id=form_msg>
+				<p id=p_send>
+					<img id=img_settings alt=settings/info src=/files/img/settingsIconBlack32_box.jpg onclick="alert('Diese Funktion kommt noch ...')">
+					<input style="flex:1;" type=text id=input_msg autocomplete=off autofocus>
+					<button id=button_send>></button>
+				</p>
+			</form>
+		</div>
+		<script src=/p/Chat/app.js></script>
 	</body>
 </html>

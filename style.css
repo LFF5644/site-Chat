@@ -14,15 +14,17 @@ button{
 }
 #input_msg{
 	font-family: Minecraft, Arial, Helvetica, sans-serif;
-	margin-right: 5px;
+	margin: 0 5px 0 5px;
 	font-size: 120%;
 	flex: 1;
-	color:currentColor;
+	color: currentColor;
 	background-color: transparent;
 	border-color:gold;
 	border-width: 4px;
 }
 #button_send{
+	border:green 4px solid;
+	border-radius: 5px;
 	font-size: 120%;
 	font-weight: bold;
 }

@@ -9,6 +9,7 @@ const ids={
 	input_msg: document.getElementById("input_msg"),
 	form_msg: document.getElementById("form_msg"),
 	div_chat: document.getElementById("div_chat"),
+	img_settings: document.getElementById("img_settings"),
 };
 const sounds={
 	msg: "/files/sounds/ding.mp3",
