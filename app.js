@@ -10,6 +10,11 @@ const ids={
 	form_msg: document.getElementById("form_msg"),
 	div_chat: document.getElementById("div_chat"),
 };
+const sounds={
+	msg: "/files/sounds/ding.mp3",
+	connect: "/files/sounds/addUSB.wav",
+	disconnect: "/files/sounds/removeUSB.wav",
+};
 
 function getTime(time=Date.now()){
 	const date=new Date(time);
@@ -17,6 +22,27 @@ function getTime(time=Date.now()){
 	str+=":";
 	str+=String(date.getMinutes()).padStart(2,"0");
 	return str;
+}
+function vibrate(time){
+	if(navigator.vibrate){
+		navigator.vibrate(time);
+	}
+}
+function playSound(key){
+	const sound=sounds[key];
+	if(!sound){
+		console.log("sound key not found");
+		return false;
+	}
+	let audio=document.getElementById("audio_sound_"+key);
+	if(!audio){
+		audio=document.createElement("audio");
+		audio.id="audio_sound_"+key;
+		audio.src=sound;
+		document.body.appendChild(audio);
+	}
+	audio.currentTime=0;
+	if(audio.paused) audio.play();
 }
 function appendHistory(data){
 	let {type,text,user,time}=data;
@@ -48,6 +74,11 @@ function appendHistory(data){
 		p_time.classList.add("time");
 		p_time.innerText=getTime(time);
 		div.appendChild(p_time);
+		if(!me){ // other user send msg
+			playSound("msg");
+			vibrate(1e3);
+			
+		}
 	}
 	else if(type=="info"){
 		div.classList.add("info");
