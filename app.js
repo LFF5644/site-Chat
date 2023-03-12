@@ -199,6 +199,17 @@ init(()=>{
 			});
 		});
 	});
+	hook_effect(()=>{
+		console.log("CHANGE!");
+		if(state.view==="chat"){
+			setTimeout(()=>{
+				document.scrollingElement.scrollTop=9e9;
+			},0);
+		}
+	},[
+		state.history.length,
+	]);
+
 	return[null,[
 		state.view==="chat"&&
 		node(ViewChat,{socket,state,actions}),
