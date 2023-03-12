@@ -6,9 +6,10 @@
 body{
 	margin-bottom: 30px;
 }
-button{
+button, img.pointer{
 	cursor: pointer;
 }
+
 #input_msg{
 	font-family: Minecraft, Arial, Helvetica, sans-serif;
 	margin-right: 5px;

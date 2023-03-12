@@ -15,6 +15,7 @@ const {
 const model={
 	init:()=>({
 		account: null,
+		clients: [],
 		connected: false,
 		history: [],
 		msg: "",
@@ -32,7 +33,7 @@ const model={
 				id: Date.now(),
 				msg: null,
 				success: true,
-				type: "info",
+				type: "small",
 				user: null,
 				...data,
 			},
@@ -45,17 +46,36 @@ const model={
 		),
 		
 	}),
-	setAccount:(state,data)=>({
+	setAccount:(state,account)=>({
 		...state,
-		account: data,
+		account,
 	}),
-	setView:(state,data)=>({
+	setView:(state,view)=>({
 		...state,
-		view: data,
+		view,
 	}),
-	setMsg:(state,data)=>({
+	setMsg:(state,msg)=>({
 		...state,
-		msg: data,
+		msg,
+	}),
+	setClients:(state,clients)=>({
+		...state,
+		clients,
+	}),
+	appendClient:(state,client)=>({
+		...state,
+		clients: [
+			...state.clients,
+			{
+				id: "",
+				user: null,
+				...client,
+			},
+		],
+	}),
+	removeClient:(state,id)=>({
+		...state,
+		clients: state.clients.filter(item=>item.id!==id),
 	}),
 };
 
@@ -111,7 +131,7 @@ function ViewChat({socket,state,actions}){return[
 				oninput: event=> actions.setMsg(event.target.value),
 				value: state.msg,
 			}),
-			node_dom("img[src=/files/img/settingsIconBlack32_box.jpg][alt=info][style=margin-right:5px;]",{
+			node_dom("img[src=/files/img/settingsIconBlack32_box.jpg][className=pointer][alt=info][style=margin-right:5px;]",{
 				onclick:()=> actions.setView("info"),
 			}),
 			node_dom("button[innerText=>][id=button_send]"),
@@ -158,6 +178,18 @@ function Message({I,username}){return[
 		}),
 	]),
 ]}
+function ViewInfo({socket,state,actions}){return[
+	node_dom("h1[style=margin-top:0;]",null,[
+		node_dom("button[innerText=<][style=border:4px green solid;border-radius:5px;font-size:1.2em;padding:0;font-weight:bold;]",{
+			onclick:()=> actions.setView("chat"),
+		}),
+		node_dom("span[innerText=Info][style=margin-left:20px;]"),
+	]),
+	node_map(ClientEntry,state.clients,{state,actions}),
+]}
+function ClientEntry({I,state,actions}){return[
+	node_dom("p",{innerText:I.user.nickname}),
+]}
 
 init(()=>{
 	const [state,actions]=hook_model(model);
@@ -199,9 +231,23 @@ init(()=>{
 				user,
 			});
 		});
+		socket.on("clients-connected",actions.setClients);
+		socket.on("user-connect",client=>{
+			actions.appendClient(client);
+			actions.appendHistory({
+				user: client.user,
+				msg: client.user.nickname+" ist dazugekommen",
+			});
+		});
+		socket.on("user-disconnect",client=>{
+			actions.removeClient(client.id);
+			actions.appendHistory({
+				user: client.user,
+				msg: client.user.nickname+" ist gegangen",
+			});
+		});
 	});
 	hook_effect(()=>{
-		console.log("CHANGE!");
 		if(state.view==="chat"){
 			setTimeout(()=>{
 				document.scrollingElement.scrollTop=9e9;
@@ -231,5 +277,8 @@ init(()=>{
 	return[null,[
 		state.view==="chat"&&
 		node(ViewChat,{socket,state,actions}),
+
+		state.view==="info"&&
+		node(ViewInfo,{socket,state,actions}),
 	]];
 });

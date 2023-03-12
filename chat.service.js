@@ -32,23 +32,23 @@ this.start=()=>{
 		client=this.changeClientObject(socketId,"accountIndex",login.data.accountIndex);
 		
 		socket.broadcast.emit("user-connect",{
-			socketId,
+			id: socketId,
 			user:{
 				username: client.account.username,
 				nickname: client.account.nickname,
 			},
 		});
-		const clients_send={};
+		const clients_send=[];
 		for(let key of Object.keys(this.clients)){
 			const client=this.clients[key];
-			//console.log(client);
 			try{
-				clients_send[key]={
+				clients_send.push({
+					id: key,
 					user:{
 						username: client.account.username,
 						nickname: client.account.nickname,
 					},
-				};
+				});
 			}catch(e){}
 		}
 		socket.emit("clients-connected",clients_send);
@@ -57,7 +57,7 @@ this.start=()=>{
 			const client=this.clients[socket.id];
 			if(!client.token) return;
 			socket.broadcast.emit("msg",{
-				socketId,
+				id: socketId,
 				user:{
 					username: client.account.username,
 					nickname: client.account.nickname,
@@ -71,7 +71,7 @@ this.start=()=>{
 			const client=this.clients[socket.id];
 			if(client.account){
 				socket.broadcast.emit("user-disconnect",{
-					socketId: socket.id,
+					id: socket.id,
 					user:{
 						username: client.account.username,
 						nickname: client.account.nickname,
