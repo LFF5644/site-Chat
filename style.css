@@ -9,9 +9,6 @@ body{
 button{
 	cursor: pointer;
 }
-#p_send{
-	display: flex;
-}
 #input_msg{
 	font-family: Minecraft, Arial, Helvetica, sans-serif;
 	margin-right: 5px;

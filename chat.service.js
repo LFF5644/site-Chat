@@ -12,68 +12,61 @@ this.start=()=>{
 		},
 	});
 	this.io.on("connect",socket=>{
-		this.clients[socket.id]={
-			token: null,
+		const token=socket.handshake.auth.token;
+		const socketId=socket.id;
+		this.clients[socketId]={
+			token,
 			account: null,
 			accountIndex: null,
-			socket,
+			//socket,
 		};
-		socket.emit("get-token");
-		socket.on("get-token",token=>{
-			this.clients[socket.id].token=token;
-			const login=services.account.authUserByInput({
-				token,
-			});
-			if(!login.allowed||!token){
-				socket.emit("account-err","wrong-token");
-				socket.disconnect(true);
-				return;
-			}
-			this.clients[socket.id].account=login.data.account;
-			this.clients[socket.id].accountIndex=login.data.accountIndex;
-			const client=this.clients[socket.id];
-			socket.emit("get-myUser",{
+		let client=this.clients[socketId];
+		const login=services.account.authUserByInput({token});
+		if(!login.allowed||!token){
+			socket.emit("error_code","wrong-token");
+			socket.disconnect();
+			return;
+		}
+		
+		client=this.changeClientObject(socketId,"account",login.data.account);
+		client=this.changeClientObject(socketId,"accountIndex",login.data.accountIndex);
+		
+		socket.broadcast.emit("user-connect",{
+			socketId,
+			user:{
 				username: client.account.username,
 				nickname: client.account.nickname,
-			});
-			socket.broadcast.emit("user-connect",{
-				socketId: socket.id,
-				user:{
-					username: client.account.username,
-					nickname: client.account.nickname,
-				},
-			});
-			const clients_send={};
-			for(let key of Object.keys(this.clients)){
-				const client=this.clients[key];
-				//console.log(client);
-				try{
-					clients_send[key]={
-						user:{
-							username: client.account.username,
-							nickname: client.account.nickname,
-						},
-					};
-				}catch(e){}
-			}
-			socket.emit("clients-connected",clients_send);
+			},
 		});
+		const clients_send={};
+		for(let key of Object.keys(this.clients)){
+			const client=this.clients[key];
+			//console.log(client);
+			try{
+				clients_send[key]={
+					user:{
+						username: client.account.username,
+						nickname: client.account.nickname,
+					},
+				};
+			}catch(e){}
+		}
+		socket.emit("clients-connected",clients_send);
 		socket.on("send-msg",data=>{
 			const {msg}=data;
 			const client=this.clients[socket.id];
 			if(!client.token) return;
 			socket.broadcast.emit("receive-msg",{
-				socketId: client.socketId,
+				socketId,
 				user:{
 					username: client.account.username,
 					nickname: client.account.nickname,
 				},
-				time: Date.now(),
+				id: Date.now(),
 				msg,
 			});
-			socket.emit("msg-sended");
 		});
-		socket.on("disconnect",(silent=false)=>{
+		socket.on("disconnect",()=>{
 			const client=this.clients[socket.id];
 			if(client.account){
 				socket.broadcast.emit("user-disconnect",{
@@ -87,6 +80,10 @@ this.start=()=>{
 			this.clients[socket.id]=undefined;
 		});
 	});
+}
+this.changeClientObject=(socketId,key,to)=>{
+	this.clients[socketId][key]=to;
+	return this.clients[socketId];
 }
 this.stop=()=>{
 	this.io.close();

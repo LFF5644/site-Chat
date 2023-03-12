@@ -1,0 +1,23 @@
+{
+	"name": "Chat",
+	"version": "1.0.0",
+	"description": "Ein Chat Programm wie es keiner zuvor gemacht hat mit meiner [Account Funktion](https://lff.one/account) verbunden so das es besser kontroliert werden kann ob hinter einem Benutzername auch der gleiche Benutzer sitzt.",
+	"main": "app.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/LFF5644/site-Chat.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/LFF5644/site-Chat/issues"
+	},
+	"homepage": "https://github.com/LFF5644/site-Chat#readme",
+	"devDependencies": {
+		"lui": "github:L3P3/lui"
+	}
+}
