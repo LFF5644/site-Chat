@@ -220,6 +220,9 @@ init(()=>{
 		){
 			audio_msg.currentTime=0;
 			if(audio_msg.paused) audio_msg.play();
+			if(navigator.vibrate){
+				navigator.vibrate(5e2);
+			}
 		}
 	},[
 		state.history.length,
