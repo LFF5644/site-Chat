@@ -161,6 +161,7 @@ function Message({I,username}){return[
 
 init(()=>{
 	const [state,actions]=hook_model(model);
+	const audio_msg=hook_memo(()=>new Audio("/files/sounds/ding.mp3"));
 	const socket=hook_memo(()=>{
 		const token=getToken();
 		if(!token){
@@ -205,6 +206,20 @@ init(()=>{
 			setTimeout(()=>{
 				document.scrollingElement.scrollTop=9e9;
 			},0);
+		}
+	},[
+		state.history.length,
+	]);
+	hook_effect(()=>{
+		const entry=state.history[state.history.length-1];
+		if(
+			entry&&
+			entry.type==="msg"&&
+			entry.user.username!==state.account.username&&
+			document.hidden
+		){
+			audio_msg.currentTime=0;
+			if(audio_msg.paused) audio_msg.play();
 		}
 	},[
 		state.history.length,
