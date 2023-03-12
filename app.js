@@ -31,6 +31,7 @@ const model={
 			{
 				id: Date.now(),
 				msg: null,
+				success: true,
 				type: "info",
 				user: null,
 				...data,
@@ -92,11 +93,8 @@ function ViewChat({socket,state,actions}){return[
 			event.preventDefault();
 			const id=Date.now();
 			const msg=state.msg;
-			socket.emit("send-msg",{msg,id},success=>{
-				actions.changeHistory({
-					id,
-					success,
-				});
+			socket.emit("msg",{msg,id},success=>{
+				actions.changeHistory({id,success});
 			});
 			actions.appendHistory({
 				id,
@@ -126,10 +124,7 @@ function Message({I,username}){return[
 		F:{
 			msg: true,
 			me: username===I.user.username,
-			isSending: (
-				username===I.user.username&&
-				!I.success
-			),
+			isSending: !I.success,
 		},
 	},[
 		node_dom("h3[className=nickname]",{
@@ -141,7 +136,6 @@ function Message({I,username}){return[
 		node_dom("p[className=time]",{
 			innerText: getTime(I.id),
 		},[
-			username===I.user.username&&
 			!I.success&&
 			node_dom("img[src=/files/img/gif/busyIRON.gif][align=top][style=max-height:20px;][title=Wird gesendet...]"),
 		]),
@@ -185,9 +179,6 @@ init(()=>{
 		window.socket=socket;
 		socket.on("connect",()=>{
 			actions.setConnected(true);
-			socket.emit("get-token",getToken(),response=>{
-				console.log(response);
-			});
 		});
 		socket.on("disconnect",()=>{
 			actions.setConnected(false);
@@ -198,7 +189,7 @@ init(()=>{
 				location.href="/account?goto=Chat";
 			}
 		});
-		socket.on("receive-msg",data=>{
+		socket.on("msg",data=>{
 			const {msg,id,user}=data;
 			actions.appendHistory({
 				id,

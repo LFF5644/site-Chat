@@ -52,11 +52,11 @@ this.start=()=>{
 			}catch(e){}
 		}
 		socket.emit("clients-connected",clients_send);
-		socket.on("send-msg",(data,cb)=>{
+		socket.on("msg",(data,cb)=>{
 			const {msg,id}=data;
 			const client=this.clients[socket.id];
 			if(!client.token) return;
-			socket.broadcast.emit("receive-msg",{
+			socket.broadcast.emit("msg",{
 				socketId,
 				user:{
 					username: client.account.username,
