@@ -72,6 +72,11 @@ div.chat > div.msg.me > p.text{			/* text for my msgs */
 	margin-bottom:0;
 }
 
+/* if sending */
+div.chat > div.msg.me.isSending{
+	background-color: #375e75;
+}
+
 /* Info Nachricht */
 div.chat > div.info{
 	border-radius: 15px;

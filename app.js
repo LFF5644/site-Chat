@@ -37,6 +37,13 @@ const model={
 			},
 		],
 	}),
+	changeHistory:(state,{id,...data})=>({
+		...state,
+		history:(state.history
+			.map(item=>item.id!==id?item:{...item,...data})
+		),
+		
+	}),
 	setAccount:(state,data)=>({
 		...state,
 		account: data,
@@ -64,7 +71,8 @@ function getToken(){
 	return null;
 }
 function ViewChat({socket,state,actions}){return[
-	node_dom("h1[innerText=Chat]",{
+	node_dom("h1[innerText=Chat][id=h1_chat]",{
+		title: socket.connected?"":"Nicht verbunden!",
 		S:{
 			color: socket.connected?"unset":"red",
 		},
@@ -84,18 +92,24 @@ function ViewChat({socket,state,actions}){return[
 			event.preventDefault();
 			const id=Date.now();
 			const msg=state.msg;
-			socket.emit("send-msg",{msg,id});
+			socket.emit("send-msg",{msg,id},success=>{
+				actions.changeHistory({
+					id,
+					success,
+				});
+			});
 			actions.appendHistory({
 				id,
 				msg,
 				type: "msg",
 				user: state.account,
+				success: false,
 			});
 			actions.setMsg("");
 		}
 	},[
 		node_dom("p[style=display:flex;]",null,[
-			node_dom("input[type=text][autofocus][autocomplete=off][id=input_msg]",{
+			node_dom("input[type=text][autofocus][autocomplete=off][maxlength=10000][required][mozactionhint=send][enterkeyhint=send][id=input_msg]",{
 				oninput: event=> actions.setMsg(event.target.value),
 				value: state.msg,
 			}),
@@ -112,6 +126,10 @@ function Message({I,username}){return[
 		F:{
 			msg: true,
 			me: username===I.user.username,
+			isSending: (
+				username===I.user.username&&
+				!I.success
+			),
 		},
 	},[
 		node_dom("h3[className=nickname]",{
@@ -122,7 +140,11 @@ function Message({I,username}){return[
 		}),
 		node_dom("p[className=time]",{
 			innerText: getTime(I.id),
-		}),
+		},[
+			username===I.user.username&&
+			!I.success&&
+			node_dom("img[src=/files/img/gif/busyIRON.gif][align=top][style=max-height:20px;][title=Wird gesendet...]"),
+		]),
 	]),
 
 	I.type==="info"&&
@@ -152,7 +174,7 @@ init(()=>{
 			location.href="/account?goto=Chat";
 			return;
 		}
-		const [username,nickname]=unescape(token).split("|");
+		const [username,nickname]=atob(unescape(token)).split("|");
 		actions.setAccount({username,nickname});
 		return io({
 			path: "/bind/socket/Chat",

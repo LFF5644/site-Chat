@@ -52,8 +52,8 @@ this.start=()=>{
 			}catch(e){}
 		}
 		socket.emit("clients-connected",clients_send);
-		socket.on("send-msg",data=>{
-			const {msg}=data;
+		socket.on("send-msg",(data,cb)=>{
+			const {msg,id}=data;
 			const client=this.clients[socket.id];
 			if(!client.token) return;
 			socket.broadcast.emit("receive-msg",{
@@ -62,9 +62,10 @@ this.start=()=>{
 					username: client.account.username,
 					nickname: client.account.nickname,
 				},
-				id: Date.now(),
+				id: id?id:Date.now(),
 				msg,
 			});
+			cb(true);
 		});
 		socket.on("disconnect",()=>{
 			const client=this.clients[socket.id];
