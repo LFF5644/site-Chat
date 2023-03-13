@@ -16,7 +16,7 @@
 			],
 			script:[
 				"https://cdn.socket.io/4.5.4/socket.io.min.js",
-				"https://cdn.jsdelivr.net/gh/L3P3/lui@7c057f498ee8813053d7f7cff3af7141b53ced03/"+(isDev?"lui.dev.js":"lui.legacy.js"),
+				"https://cdn.jsdelivr.net/gh/L3P3/lui@7c057f498ee8813053d7f7cff3af7141b53ced03/"+(isDev&&!input.legacy?"lui.dev.js":"lui.legacy.js"),
 			],
 		})?>
 	</head>
