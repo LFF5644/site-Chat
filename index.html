@@ -1,5 +1,7 @@
 <?
 	const {importHead}=globals.functions;
+	const {hostname}=require("os");
+	const isDev=hostname()!=="lff-raspberrypi";
 ?><!DOCTYPE html>
 <!--Created 09.03.2023 at 09:14-->
 <html>
@@ -14,12 +16,13 @@
 			],
 			script:[
 				"https://cdn.socket.io/4.5.4/socket.io.min.js",
-				"https://cdn.jsdelivr.net/gh/L3P3/lui@7c057f498ee8813053d7f7cff3af7141b53ced03/lui.js",
+				"https://cdn.jsdelivr.net/gh/L3P3/lui@7c057f498ee8813053d7f7cff3af7141b53ced03/"+(isDev?"lui.dev.js":"lui.legacy.js"),
 			],
 		})?>
 	</head>
 	<body>
 		<h1>Web Frame Work ist beschädigt oder kaput!</h1>
+		<noscript><h1>UND JavaScript ist aus!</h1></noscript>
 		<script src=/p/Chat/app.js></script>
 	</body>
 </html>
