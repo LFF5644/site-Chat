@@ -127,7 +127,7 @@ function ViewChat({socket,state,actions}){return[
 		}
 	},[
 		node_dom("p[style=display:flex;]",null,[
-			node_dom("input[type=text][autofocus][autocomplete=off][maxlength=10000][required][mozactionhint=send][enterkeyhint=send][id=input_msg]",{
+			node_dom("input[type=text][autofocus][autocomplete=off][maxlength=10000][mozactionhint=send][enterkeyhint=send][id=input_msg]",{
 				oninput: event=> actions.setMsg(event.target.value),
 				value: state.msg,
 			}),
