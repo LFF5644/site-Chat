@@ -2,7 +2,6 @@
 	{
 		"type": "google-closure-compiler",
 		"file": "app.js",
-		"language": "ECMASCRIPT3",
-		"mode": "SIMPLE"
+		"language": "ECMASCRIPT3"
 	}
 ]
