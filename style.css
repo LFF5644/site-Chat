@@ -32,6 +32,7 @@ button, img.pointer{
 }
 /* for all */
 div.chat > div.msg{						/* main div element for all */
+	font-family: Minecraft, Arial, Helvetica, sans-serif;
 	border: 2px solid orange;
 	border-radius: 15px;
 	background-color: #3571a7;
