@@ -258,7 +258,6 @@ init(()=>{
 	]);
 	hook_effect(()=>{
 		const entry=state.history[state.history.length-1];
-		console.log("history length changed!");
 		if(
 			entry&&
 			entry.type==="msg"&&
