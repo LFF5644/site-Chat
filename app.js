@@ -135,9 +135,6 @@ function ViewChat({socket,state,actions}){return[
 			node_dom("span[id=span_info]",{
 				onclick:()=> actions.setView("info"),
 			}),
-			/*node_dom("img[src=/files/img/settingsIconBlack32_box.jpg][className=pointer][style=margin-right:5px;]",{
-				onclick:()=> actions.setView("info"),
-			}),*/
 			node_dom("button[innerText=>][id=button_send]"),
 		]),
 	]),
