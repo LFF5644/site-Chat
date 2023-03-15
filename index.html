@@ -23,6 +23,6 @@
 	<body>
 		<h1>Web Frame Work ist beschädigt oder kaput!</h1>
 		<noscript><h1>UND JavaScript ist aus!</h1></noscript>
-		<script src=<?=(isDev||input.raw)?"/p/Chat/app.js":"/p/Chat/build/app.js"?>></script>
+		<script src=<?=((isDev||input.raw)&&!input.build)?"/p/Chat/app.js":"/p/Chat/build/app.js"?>></script>
 	</body>
 </html>

@@ -11,10 +11,10 @@ button, img.pointer{
 }
 
 #input_msg{
+	width: 75%;
 	font-family: Minecraft, Arial, Helvetica, sans-serif;
-	margin-right: 5px;
+	margin-right: 8px;
 	font-size: 120%;
-	flex: 1;
 	color: currentColor;
 	background-color: transparent;
 	border-color:gold;
@@ -26,6 +26,12 @@ button, img.pointer{
 	font-size: 120%;
 	font-weight: bold;
 	font-family: Minecraft, sans-serif;
+}
+#span_info{
+	background-image: url("/files/img/settingsIconBlack32_box.jpg");
+	padding: 0;
+	padding-right: 32px;
+	margin-right: 5px;
 }
 #h1_chat{
 	margin-left: 0;

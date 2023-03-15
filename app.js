@@ -112,7 +112,8 @@ function ViewChat({socket,state,actions}){return[
 		onsubmit:(event)=>{
 			event.preventDefault();
 			const id=Date.now();
-			const msg=state.msg;
+			const msg=state.msg.trim();
+			if(!msg) return;
 			socket.emit("msg",{msg,id},success=>{
 				actions.changeHistory({id,success});
 			});
@@ -131,9 +132,12 @@ function ViewChat({socket,state,actions}){return[
 				oninput: event=> actions.setMsg(event.target.value),
 				value: state.msg,
 			}),
-			node_dom("img[src=/files/img/settingsIconBlack32_box.jpg][className=pointer][style=margin-right:5px;]",{
+			node_dom("span[id=span_info]",{
 				onclick:()=> actions.setView("info"),
 			}),
+			/*node_dom("img[src=/files/img/settingsIconBlack32_box.jpg][className=pointer][style=margin-right:5px;]",{
+				onclick:()=> actions.setView("info"),
+			}),*/
 			node_dom("button[innerText=>][id=button_send]"),
 		]),
 	]),
