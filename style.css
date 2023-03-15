@@ -25,6 +25,7 @@ button, img.pointer{
 	border-radius: 5px;
 	font-size: 120%;
 	font-weight: bold;
+	font-family: Minecraft, sans-serif;
 }
 #h1_chat{
 	margin-left: 0;
