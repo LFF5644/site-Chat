@@ -279,6 +279,7 @@ init(()=>{
 			}
 			const notification=new Notification(entry.user.nickname,{
 				body: entry.msg,
+				icon: location.protocol+"//"+location.host+"/files/img/icon/Chat/chat64.jpg",
 			});
 			const fn=()=>{
 				audio_msg.currentTime=0;
