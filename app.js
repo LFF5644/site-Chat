@@ -19,6 +19,7 @@ const model={
 		connected: false,
 		history: [],
 		msg: "",
+		notificationPermission: "default",
 		view: "chat",
 	}),
 	setConnected:(state,bool)=>({
@@ -76,6 +77,10 @@ const model={
 	removeClient:(state,id)=>({
 		...state,
 		clients: state.clients.filter(item=>item.id!==id),
+	}),
+	setNotificationPermission:(state,notificationPermission)=>({
+		...state,
+		notificationPermission,
 	}),
 };
 
@@ -210,6 +215,8 @@ init(()=>{
 		});
 	});
 	hook_effect(()=>{
+		Notification.requestPermission();
+
 		window.socket=socket;
 		socket.on("connect",()=>{
 			actions.setConnected(true);
@@ -270,10 +277,24 @@ init(()=>{
 			if(navigator.vibrate){
 				navigator.vibrate(5e2);
 			}
+			const notification=new Notification(entry.user.nickname,{
+				body: entry.msg,
+			});
+			const fn=()=>{
+				audio_msg.currentTime=0;
+				if(!audio_msg.paused) audio_msg.pause();
+			}
+			notification.onclick=fn;
+			notification.onclose=fn;
+			notification.onerror=err=>{
+				console.log("Notification Error:",err);
+				Notification.requestPermission();
+			};
 		}
 	},[
 		state.history.length,
 	]);
+	hook_effect(actions.setNotificationPermission,[Notification.permission]);
 
 	return[null,[
 		state.view==="chat"&&
