@@ -100,7 +100,7 @@ function ViewChat({socket,state,actions}){return[
 	node_dom("h1[innerText=Chat][id=h1_chat]",{
 		title: socket.connected?"":"Nicht verbunden!",
 		S:{
-			color: socket.connected?"unset":"red",
+			color: socket.connected?"":"red",
 		},
 	}),
 

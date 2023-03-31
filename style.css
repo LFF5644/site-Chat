@@ -32,6 +32,7 @@ button, img.pointer{
 	padding: 0;
 	padding-right: 32px;
 	margin-right: 5px;
+	cursor: pointer;
 }
 #h1_chat{
 	margin-left: 0;
