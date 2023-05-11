@@ -15,12 +15,14 @@ const {
 const model={
 	init:()=>({
 		account: null,
+		chatroom: "global",
+		chatrooms: [],
 		clients: [],
 		connected: false,
 		history: [],
 		msg: "",
 		notificationPermission: "default",
-		view: "chat",
+		view: "chatrooms",
 	}),
 	setConnected:(state,bool)=>({
 		...state,
@@ -46,6 +48,10 @@ const model={
 			.map(item=>item.id!==id?item:{...item,...data})
 		),
 		
+	}),
+	clearHistory: state=>({
+		...state,
+		history: [],
 	}),
 	setAccount:(state,account)=>({
 		...state,
@@ -82,6 +88,21 @@ const model={
 		...state,
 		notificationPermission,
 	}),
+	setChatrooms:(state,chatrooms)=>({
+		...state,
+		chatrooms,
+	}),
+	setChatroom:(state,chatroom)=>({
+		...state,
+		chatroom,
+	}),
+	changeChatroom_fromOther:(state,client)=>({
+		...state,
+		clients: state.clients.map(item=>item.id!==client.id?item:{
+			...item,
+			chatroom: client.chatroom,
+		}),
+	}),
 };
 
 function getTime(time=Date.now()){
@@ -96,12 +117,65 @@ function getToken(){
 	if(cookie) return cookie.substring(6);
 	return null;
 }
+function sendMessage(data){
+	const {
+		audioSrc,
+		icon,
+		text,
+		title,
+	}=data;
+
+	audio_msg.src=audioSrc?audioSrc:"/files/sounds/ding.mp3";
+	audio_msg.currentTime=0;
+	if(audio_msg.paused) audio_msg.play();
+	if(navigator.vibrate){
+		navigator.vibrate(5e2);
+	}
+	const notification=new Notification(title,{
+		body: text,
+		icon: icon?icon:location.protocol+"//"+location.host+"/files/img/icon/Chat/chat64.jpg",
+	});
+	const fn=()=>{
+		audio_msg.currentTime=0;
+		if(!audio_msg.paused) audio_msg.pause();
+	}
+	notification.onclick=fn;
+	notification.onclose=fn;
+	notification.onerror=err=>{
+		console.log("Notification Error:",err);
+		Notification.requestPermission();
+	};
+}
+function leaveChatroom(){
+	socket.emit("leave-chatroom");
+	actions.setChatroom(null);
+	actions.clearHistory();
+	actions.setView("chatrooms");
+}
+function changeChatroom(chatroom,password){
+	socket.emit("change-chatroom",chatroom,password,([success,error_code,error_message])=>{
+		if(success){
+			actions.setChatroom(chatroom);
+			actions.clearHistory();
+			actions.setView("chat");
+			console.log("new Chatroom: "+chatroom);
+		}
+		else{
+			alert(error_code+"\n"+error_message);
+			//actions.setView("chatrooms");
+		}
+	});
+}
+
 function ViewChat({socket,state,actions}){return[
-	node_dom("h1[innerText=Chat][id=h1_chat]",{
+	node_dom("h1[innerText=Chat][className=center]",{
 		title: socket.connected?"":"Nicht verbunden!",
 		S:{
 			color: socket.connected?"":"red",
 		},
+	}),
+	node_dom("h2[className=center]",{
+		innerText: "Chatraum: "+state.chatrooms.find(item=>item.id===state.chatroom).name,
 	}),
 
 	state.account&&
@@ -184,17 +258,67 @@ function Message({I,username}){return[
 		}),
 	]),
 ]}
+
 function ViewInfo({socket,state,actions}){return[
-	node_dom("h1[style=margin-top:0;]",null,[
-		node_dom("button[innerText=<][style=border:4px green solid;border-radius:5px;font-size:1.2em;padding:0;font-weight:bold;]",{
+	node_dom("h1[className=withButton]",null,[
+		node_dom("button[innerText=💬]",{
 			onclick:()=> actions.setView("chat"),
 		}),
-		node_dom("span[innerText=Info][style=margin-left:20px;]"),
+		node_dom("button[innerText=🚪]",{
+			onclick: leaveChatroom,
+		}),
+		node_dom("span[innerText=Info]"),
 	]),
-	node_map(ClientEntry,state.clients,{state,actions}),
+	/*node_dom("textarea",{
+		innerText: JSON.stringify(state.clients)+"\n\n"+JSON.stringify(state.chatrooms),
+	}),*/
+	node_dom("div",null,[
+		node_map(ChatroomEntry,state.chatrooms,{state,actions}),
+	]),
+	
+]}
+function ChatroomEntry({I,state,actions}){return[
+	state.clients.filter(item=>item.chatroom===I.id).length>0&&
+	node_dom("fieldset[className=chatroom_clientList]",null,[
+		node_dom("legend",{
+			innerText: I.name,
+		}),
+		node_dom("ul",null,[
+			node_map(ClientEntry,state.clients.filter(item=>item.chatroom===I.id),{actions,state}),
+		]),
+		
+	]),
 ]}
 function ClientEntry({I,state,actions}){return[
-	node_dom("p",{innerText:I.user.nickname}),
+	node_dom("li",{
+		innerText: I.user.nickname+" ",
+		title: I.user.username,
+	}),
+]}
+
+function ViewChatrooms({state,actions}){return[
+	node_dom("h1[innerText=Chaträume][title=Chatrooms]"),
+	node_dom("div",null,[
+		node_map(Chatroom,state.chatrooms,{state,actions}),
+	]),
+]}
+function Chatroom({I,state,actions}){return[
+	node_dom("p",{
+		onclick:()=>{
+			changeChatroom(
+				I.id,
+				I.password
+				?	prompt("Passwort für "+I.name)
+				:	null
+			);
+		},
+	},[
+		node_dom("a",{
+			innerText: I.name,
+			href: "#"+I.id,
+			onclick: e=>e.preventDefault(),
+		})
+	]),
 ]}
 
 init(()=>{
@@ -203,8 +327,8 @@ init(()=>{
 	const socket=hook_memo(()=>{
 		const token=getToken();
 		if(!token){
-			alert("Sie sind NICHT angemeldet. Der Chat kann nur mit einem Account verwendet werden. Klicken Sie jetzt auf OK, um sich anzumelden!");
-			location.href="/account?goto=Chat";
+			if(confirm("Sie sind NICHT angemeldet. Der Chat kann nur mit einem Account verwendet werden. Klicken Sie jetzt auf OK, um sich anzumelden!")) location.href="/account?goto=Chat";
+			else history.back();
 			return;
 		}
 		const [username,nickname]=atob(unescape(token)).split("|");
@@ -218,6 +342,9 @@ init(()=>{
 		Notification.requestPermission();
 
 		window.socket=socket;
+		window.audio_msg=audio_msg;
+		window.actions=actions;
+
 		socket.on("connect",()=>{
 			actions.setConnected(true);
 		});
@@ -240,20 +367,52 @@ init(()=>{
 			});
 		});
 		socket.on("clients-connected",actions.setClients);
+		socket.on("user-change-chatroom",actions.changeChatroom_fromOther);
 		socket.on("user-connect",client=>{
-			actions.appendClient(client);
+			//actions.appendClient(client);
 			actions.appendHistory({
 				user: client.user,
-				msg: client.user.nickname+" ist dazugekommen",
+				msg: client.user.nickname+" bettritt den Chatraum!",
+			});
+			sendMessage({
+				title: "Chat Raum Betreten",
+				text: client.user.nickname+" bettritt den Chatraum!",
 			});
 		});
 		socket.on("user-disconnect",client=>{
+			//actions.removeClient(client.id);
+			actions.appendHistory({
+				user: client.user,
+				msg: client.user.nickname+" Verlässt den Chatraum!",
+			});
+			sendMessage({
+				title: "Chat Raum Verlassen",
+				text: client.user.nickname+" Verlässt den Chatraum!",
+			});
+		});
+		socket.on("user-online",client=>{
+			actions.appendClient(client);
+			actions.appendHistory({
+				user: client.user,
+				msg: client.user.nickname+" ist Online!",
+			});
+			sendMessage({
+				title: "Online",
+				text: client.user.nickname+" ist Online!",
+			});
+		});
+		socket.on("user-offline",client=>{
 			actions.removeClient(client.id);
 			actions.appendHistory({
 				user: client.user,
-				msg: client.user.nickname+" ist gegangen",
+				msg: client.user.nickname+" ist Offline!",
+			});
+			sendMessage({
+				title: "Offline",
+				text: client.user.nickname+" ist Offline!",
 			});
 		});
+		socket.on("chatrooms",actions.setChatrooms);
 	});
 	hook_effect(()=>{
 		if(state.view==="chat"){
@@ -272,25 +431,10 @@ init(()=>{
 			entry.user.username!==state.account.username&&
 			document.hidden
 		){
-			audio_msg.currentTime=0;
-			if(audio_msg.paused) audio_msg.play();
-			if(navigator.vibrate){
-				navigator.vibrate(5e2);
-			}
-			const notification=new Notification(entry.user.nickname,{
-				body: entry.msg,
-				icon: location.protocol+"//"+location.host+"/files/img/icon/Chat/chat64.jpg",
+			sendMessage({
+				title: entry.user.nickname+" schreibt",
+				text: entry.msg,
 			});
-			const fn=()=>{
-				audio_msg.currentTime=0;
-				if(!audio_msg.paused) audio_msg.pause();
-			}
-			notification.onclick=fn;
-			notification.onclose=fn;
-			notification.onerror=err=>{
-				console.log("Notification Error:",err);
-				Notification.requestPermission();
-			};
 		}
 	},[
 		state.history.length,
@@ -298,6 +442,9 @@ init(()=>{
 	hook_effect(actions.setNotificationPermission,[Notification.permission]);
 
 	return[null,[
+		state.view==="chatrooms"&&
+		node(ViewChatrooms,{socket,state,actions}),
+
 		state.view==="chat"&&
 		node(ViewChat,{socket,state,actions}),
 

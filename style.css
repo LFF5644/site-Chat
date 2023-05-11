@@ -3,10 +3,13 @@
 	font-family: Minecraft;
 	src: url("/files/fonts/Minecraft.otf");
 }
+
 body{
 	margin-bottom: 30px;
 }
-button, img.pointer{
+
+button,
+img.pointer{
 	cursor: pointer;
 }
 
@@ -17,16 +20,18 @@ button, img.pointer{
 	font-size: 120%;
 	color: currentColor;
 	background-color: transparent;
-	border-color:gold;
+	border-color: gold;
 	border-width: 4px;
 }
+
 #button_send{
-	border:green 4px solid;
+	border: green 4px solid;
 	border-radius: 5px;
 	font-size: 120%;
 	font-weight: bold;
 	font-family: Minecraft, sans-serif;
 }
+
 #span_info{
 	background-image: url("/files/img/settingsIconBlack32_box.jpg");
 	padding: 0;
@@ -34,12 +39,43 @@ button, img.pointer{
 	margin-right: 5px;
 	cursor: pointer;
 }
-#h1_chat{
+
+h1.center,
+h2.center{
 	margin-left: 0;
 	text-align: center;
 }
+
+fieldset.chatroom_clientList{
+	width: fit-content;
+	margin: 0;
+	padding: 0;
+	padding: 15px;
+}
+
+fieldset.chatroom_clientList>ul{
+	margin: 5px;
+	padding: 10px;
+}
+
+h1.withButton{
+	margin-left:0;
+}
+h1.withButton>button{
+	border: 4px green solid;
+	border-radius: 5px;
+	font-size: 1.2em;
+	padding: 0;
+	font-weight: bold;
+	margin-left: 5px;
+}
+h1.withButton>span{
+	margin-left: 20px;
+}
+
 /* for all */
-div.chat > div.msg{						/* main div element for all */
+div.chat>div.msg{
+	/* main div element for all */
 	font-family: Minecraft, Arial, Helvetica, sans-serif;
 	border: 2px solid orange;
 	border-radius: 15px;
@@ -48,66 +84,79 @@ div.chat > div.msg{						/* main div element for all */
 	margin-right: 30%;
 	margin-bottom: 4px;
 }
-div.chat > div.msg > h3.nickname{		/* nickname for all msg */
+
+div.chat>div.msg>h3.nickname{
+	/* nickname for all msg */
 	margin: 0;
 	margin-left: 15px;
 	color: white;
 }
-div.chat > div.msg > p.text{			/* msg for all msg */
+
+div.chat>div.msg>p.text{
+	/* msg for all msg */
 	color: black;
 	margin-bottom: 0;
-	margin-top:5px;
+	margin-top: 5px;
 	margin-left: 10px;
 }
-div.chat > div.msg > p.time{			/* time for all msg */
+
+div.chat>div.msg>p.time{
+	/* time for all msg */
 	text-align: right;
-	margin-top:0;
+	margin-top: 0;
 	margin-right: 10px;
 	margin-bottom: 10px;
 }
 
 /* for sender */
-div.chat > div.msg.me{					/* main div element for sender */
+div.chat>div.msg.me{
+	/* main div element for sender */
 	background-color: #009ae5;
 	border-color: olivedrab;
 	margin-left: 30%;
 	margin-right: 0;
 	margin-bottom: 4px;
 }
-div.chat > div.msg.me > h3.nickname{	/* nickname for my msgs */
+
+div.chat>div.msg.me>h3.nickname{
+	/* nickname for my msgs */
 	display: none;
 }
-div.chat > div.msg.me > p.text{			/* text for my msgs */
+
+div.chat>div.msg.me>p.text{
+	/* text for my msgs */
 	margin-left: 10px;
-	margin-bottom:0;
+	margin-bottom: 0;
 }
 
 /* if sending */
-div.chat > div.msg.me.isSending{
+div.chat>div.msg.me.isSending{
 	background-color: #375e75;
 }
 
 /* Info Nachricht */
-div.chat > div.info{
+div.chat>div.info{
 	border-radius: 15px;
 	border: 2px solid lightgreen;
 	background-color: orange;
 	color: black;
 	margin-bottom: 4px;
 }
-div.chat > div.info > p.text{
+
+div.chat>div.info>p.text{
 	margin-left: 10px;
-	margin-bottom:0;
+	margin-bottom: 0;
 }
-div.chat > div.info > p.time{
+
+div.chat>div.info>p.time{
 	text-align: right;
-	margin-top:0;
+	margin-top: 0;
 	margin-right: 10px;
 	margin-bottom: 10px;
 }
 
 /* small Info Nachricht */
-div.chat > div.small{
+div.chat>div.small{
 	border: 2px solid lightgreen;
 	border-radius: 10px;
 	background-color: orange;
@@ -118,6 +167,7 @@ div.chat > div.small{
 	margin-right: auto;
 	margin-left: auto;
 }
-div.chat > div.small > p.text{
+
+div.chat>div.small>p.text{
 	margin: 5px 10px 5px 10px;
 }
