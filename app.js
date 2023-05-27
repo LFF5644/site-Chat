@@ -3,13 +3,15 @@
 */
 const lui=window.lui;
 const {
-	init,
-	node,
-	node_dom,
-	node_map,
+	defer_end,
+	defer,
 	hook_effect,
 	hook_memo,
 	hook_model,
+	init,
+	node_dom,
+	node_map,
+	node,
 }=lui;
 
 const model={
@@ -92,6 +94,20 @@ const model={
 		...state,
 		chatrooms,
 	}),
+	appendChatroom:(state,chatroom)=>({
+		...state,
+		chatrooms:[
+			...state.chatrooms,
+			chatroom,
+		],
+	}),
+	removeChatroom:(state,id)=>({
+		...state,
+		chatrooms: state.chatrooms.filter(item=>item.id!==id),
+		chatroom: state.chatroom===id?null:state.chatroom,
+		history: state.chatroom===id?[]:state.history,
+		view: state.chatroom===id?"chatrooms":state.view,
+	}),
 	setChatroom:(state,chatroom)=>({
 		...state,
 		chatroom,
@@ -103,6 +119,7 @@ const model={
 			chatroom: client.chatroom,
 		}),
 	}),
+	debugger: state=>console.log(state)?state:state,
 };
 
 function getTime(time=Date.now()){
@@ -147,22 +164,48 @@ function sendMessage(data){
 	};
 }
 function leaveChatroom(){
+	defer();
 	socket.emit("leave-chatroom");
 	actions.setChatroom(null);
 	actions.clearHistory();
 	actions.setView("chatrooms");
+	defer_end();
 }
 function changeChatroom(chatroom,password){
 	socket.emit("change-chatroom",chatroom,password,([success,error_code,error_message])=>{
 		if(success){
+			defer();
 			actions.setChatroom(chatroom);
 			actions.clearHistory();
 			actions.setView("chat");
 			console.log("new Chatroom: "+chatroom);
+			defer_end();
 		}
 		else{
 			alert(error_code+"\n"+error_message);
 			//actions.setView("chatrooms");
+		}
+	});
+}
+function createChatroom(chatroom_name,chatroom_password=null,chatroom_description=null){
+	socket.emit("add-chatroom",chatroom_name,chatroom_password,chatroom_description,([success,data])=>{
+		if(success){
+			console.log("added chatroom",data);
+			actions.appendChatroom(data);
+		}
+		else{
+			alert(data);
+		}
+	});
+}
+function deleteChatroom(chatroom_id,chatroom_password){
+	socket.emit("delete-chatroom",chatroom_id,chatroom_password,([success,data])=>{
+		if(success){
+			console.log("deleted chatroom",data);
+			actions.removeChatroom(chatroom_id);
+		}
+		else{
+			alert(data);
 		}
 	});
 }
@@ -261,10 +304,10 @@ function Message({I,username}){return[
 
 function ViewInfo({socket,state,actions}){return[
 	node_dom("h1[className=withButton]",null,[
-		node_dom("button[innerText=💬]",{
+		node_dom("button[innerText=💬][title=Zurück zum Chat]",{
 			onclick:()=> actions.setView("chat"),
 		}),
-		node_dom("button[innerText=🚪]",{
+		node_dom("button[innerText=🚪][title=Chatraum Verlassen]",{
 			onclick: leaveChatroom,
 		}),
 		node_dom("span[innerText=Info]"),
@@ -272,6 +315,35 @@ function ViewInfo({socket,state,actions}){return[
 	/*node_dom("textarea",{
 		innerText: JSON.stringify(state.clients)+"\n\n"+JSON.stringify(state.chatrooms),
 	}),*/
+	node_dom("p",null,[
+		node_dom("a[innerText=Zurück zum Chat]",{
+			onclick: event=>{
+				event.preventDefault();
+				actions.setView("chat");
+			},
+			href: "",
+		}),
+	]),
+	node_dom("p",null,[
+		node_dom("a[innerText=Chat Verlassen]",{
+			onclick: event=>{
+				event.preventDefault();
+				leaveChatroom();
+			},
+			href: "",
+		}),
+	]),
+	node_dom("p",null,[
+		node_dom("a[innerText=Chatraum Löschen]",{
+			onclick: event=>{
+				event.preventDefault();
+				if(confirm("Soll der Chatraum '"+state.chatroom+"' wirklich gelöscht werden?")){
+					deleteChatroom(state.chatroom,state.chatrooms.find(item=>item.id===state.chatroom).password?prompt("Passwort für "+state.chatroom+" benötigt fürs löschen!"):null);
+				}
+			},
+			href: "",
+		}),
+	]),
 	node_dom("div",null,[
 		node_map(ChatroomEntry,state.chatrooms,{state,actions}),
 	]),
@@ -298,6 +370,13 @@ function ClientEntry({I,state,actions}){return[
 
 function ViewChatrooms({state,actions}){return[
 	node_dom("h1[innerText=Chaträume][title=Chatrooms]"),
+	node_dom("p",null,[
+		node_dom("button[innerText=Chatraum Erstellen]",{
+			onclick:()=>{
+				actions.setView("createChatroom")
+			},
+		}),
+	]),
 	node_dom("div",null,[
 		node_map(Chatroom,state.chatrooms,{state,actions}),
 	]),
@@ -319,6 +398,43 @@ function Chatroom({I,state,actions}){return[
 			onclick: e=>e.preventDefault(),
 		})
 	]),
+]}
+function ViewCreateChatroom({socket,state,actions}){return[
+	node_dom("h1[innerText=Chatraum Erstellen]"),
+	node_dom("form",{
+		onsubmit: event=>{
+			event.preventDefault();
+			const chatroom_name=event.target.chatroom_name.value;
+			const chatroom_description=Boolean(event.target.chatroom_description.value)?event.target.chatroom_description.value:null;
+			const chatroom_password=Boolean(event.target.chatroom_password.value)?event.target.chatroom_password.value:null;
+
+			createChatroom(chatroom_name,chatroom_password,chatroom_description);
+
+			actions.setView("chatrooms");
+		},
+	},[
+		node_dom("p",null,[
+			node_dom("label[innerHTML=Chatname<span style=color:red>*</span>: ]",null,[
+				node_dom("input[placeholder=Chatraum mit Freunden][type=text][required][name=chatroom_name]"),
+			]),
+			
+		]),
+		node_dom("p",null,[
+			node_dom("label[innerText=Chatbeschreibung: ]",null,[
+				node_dom("input[placeholder=Zum anschreiben][type=text][name=chatroom_description]"),
+			]),
+		]),
+		node_dom("p",null,[
+			node_dom("label[innerText=Chatpasswort: ]",null,[
+				node_dom("input[placeholder=****][type=text][name=chatroom_password]"),
+			]),
+		]),
+		node_dom("p",null,[
+			node_dom("button[innerText=Erstellen][type=submit][style=margin-right:10px]"),
+			node_dom("button[innerText=Zurück][type=button]",{onclick: ()=> actions.setView("chatrooms")}),
+		]),
+	]),
+	
 ]}
 
 init(()=>{
@@ -412,6 +528,13 @@ init(()=>{
 				text: client.user.nickname+" ist Offline!",
 			});
 		});
+		socket.on("add-chatroom",chatroom=>{
+			console.log("added chatroom",chatroom);
+			actions.appendChatroom(chatroom);
+		});
+		socket.on("delete-chatroom",chatroom_id=>{
+			actions.removeChatroom(chatroom_id);	
+		});
 		socket.on("chatrooms",actions.setChatrooms);
 	});
 	hook_effect(()=>{
@@ -450,5 +573,8 @@ init(()=>{
 
 		state.view==="info"&&
 		node(ViewInfo,{socket,state,actions}),
+
+		state.view==="createChatroom"&&
+		node(ViewCreateChatroom,{socket,state,actions}),
 	]];
 });

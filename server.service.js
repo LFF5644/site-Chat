@@ -1,3 +1,6 @@
+const {
+	tofsStr,
+}=globals.functions;
 const crypto=require("crypto");
 const services={
 	account: service_require("server/account/account.new"),
@@ -34,10 +37,10 @@ this.start=()=>{
 		const token=socket.handshake.auth.token;
 		const socketId=socket.id;
 		this.clients[socketId]={
-			//socket,
 			account: null,
 			accountIndex: null,
 			chatroom: null,
+			socket,
 			token,
 		};
 		let client=this.clients[socketId];
@@ -146,6 +149,78 @@ this.start=()=>{
 			};
 			socket.broadcast.emit("user-change-chatroom",client_send);
 		});
+		socket.on("add-chatroom",(chatroom_name,chatroom_password,chatroom_description,callback)=>{
+			const client=this.clients[socket.id];
+			const chatroom_id=tofsStr(chatroom_name);
+			const chatroom={
+				createdDate: Date.now(),
+				createdUser: client.account.username,
+				description: chatroom_description,
+				id: chatroom_id,
+				name: chatroom_name,
+				password: chatroom_password?this.createHash(chatroom_password):null,
+			};
+
+			if(this.chatrooms.find(item=>item.id===chatroom_id)){
+				callback([false,"Chatroom name existiert"]);
+				return;
+			}
+
+			this.chatrooms.push(chatroom);
+			const chatroom_send={
+				...chatroom,
+				password: Boolean(chatroom.password),
+			}
+			socket.broadcast.emit("add-chatroom",chatroom_send);
+			callback([true,chatroom_send]);
+
+		});
+		socket.on("delete-chatroom",(chatroom_id,chatroom_password,callback)=>{
+			const client=this.clients[socket.id];
+			const chatroom=this.chatrooms.find(item=>item.id===chatroom_id);
+
+			if(!chatroom){
+				callback([false,"Chatroom nicht gefunden"]);
+				return;
+			}
+			else if(chatroom.createdUser!==client.account.username){
+				callback([false,`Dieser Chatraum gehört "${chatroom.createdUser?this.createdUser:"SERVER"}" du hast keine rechte diesen zu Löschen!`]);
+				return;
+			}
+			else if(
+				chatroom.password!==null&&
+				chatroom.password!==this.createHash(chatroom_password)
+			){
+				callback([false,"Falsches Passwort!"]);
+				return;
+			}
+
+			// say clients that this room was deleted
+
+			const sockets=(Object.keys(this.clients)
+				.map(item=>this.clients[item])
+				.filter(item=>item.chatroom===chatroom_id)
+				.filter(item=>!console.log(item))
+				.map(item=>item.socket)
+			);
+			for(const currentSocket of sockets){
+				currentSocket.leave(chatroom_id);
+				this.changeClientObject(currentSocket.id,"chatroom",null);
+				const client_send={
+					chatroom: null,
+					id: currentSocket.id,
+					user:{
+						nickname: client.account.nickname,
+						username: client.account.username,
+					},
+				};
+				this.io.emit("user-change-chatroom",client_send);
+			}
+
+			this.chatrooms=this.chatrooms.filter(item=>item.id!==chatroom_id);
+			socket.broadcast.emit("delete-chatroom",chatroom_id);
+			callback([true,chatroom_id]);
+		});
 		socket.on("disconnect",()=>{
 			const client=this.clients[socket.id];
 			socket.leave(client.chatroom);
@@ -169,7 +244,7 @@ this.changeClientObject=(socketId,key,to)=>{
 	return this.clients[socketId];
 }
 this.createHash=(content,outputType="hex")=>{
-	return crypto.createHash("sha256").update(content).digest(outputType);
+	return crypto.createHash("sha256").update(String(content)).digest(outputType);
 }
 this.stop=()=>{
 	this.io.close();
