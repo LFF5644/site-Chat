@@ -14,6 +14,16 @@ const {
 	node,
 }=lui;
 
+const chatroomTemplate={
+	createdDate: null,
+	createdUser: null,
+	description: null,
+	id: null,
+	name: null,
+	password: false,
+	view_isExtended: false,
+};
+
 const model={
 	init:()=>({
 		account: null,
@@ -98,7 +108,10 @@ const model={
 		...state,
 		chatrooms:[
 			...state.chatrooms,
-			chatroom,
+			{
+				...chatroomTemplate,
+				...chatroom,
+			},
 		],
 	}),
 	removeChatroom:(state,id)=>({
@@ -107,6 +120,14 @@ const model={
 		chatroom: state.chatroom===id?null:state.chatroom,
 		history: state.chatroom===id?[]:state.history,
 		view: state.chatroom===id?"chatrooms":state.view,
+	}),
+	editChatroom:(state,object)=>({
+		...state,
+		chatrooms: state.chatrooms.map(item=>item.id!==object.id?item:{
+			//...chatroomTemplate,
+			...item,
+			...object,
+		}),
 	}),
 	setChatroom:(state,chatroom)=>({
 		...state,
@@ -373,7 +394,7 @@ function ViewChatrooms({state,actions}){return[
 	node_dom("p",null,[
 		node_dom("button[innerText=Chatraum Erstellen]",{
 			onclick:()=>{
-				actions.setView("createChatroom")
+				actions.setView("createChatroom");
 			},
 		}),
 	]),
@@ -382,22 +403,100 @@ function ViewChatrooms({state,actions}){return[
 	]),
 ]}
 function Chatroom({I,state,actions}){return[
-	node_dom("p",{
-		onclick:()=>{
-			changeChatroom(
-				I.id,
-				I.password
-				?	prompt("Passwort für "+I.name)
-				:	null
-			);
-		},
-	},[
+	!I.view_isExtended&&
+	node_dom("p",null,[
 		node_dom("a",{
 			innerText: I.name,
 			href: "#"+I.id,
-			onclick: e=>e.preventDefault(),
+			onclick: event=>{
+				event.preventDefault();
+				actions.editChatroom({
+					id: I.id,
+					view_isExtended: true,
+				});
+			},
 		})
 	]),
+
+	I.view_isExtended&&
+	node_dom("fieldset",null,[
+		node_dom("legend",null,[
+			node_dom("a",{
+				innerText: I.name,
+				href: "#"+I.id,
+				onclick: event=>{
+					event.preventDefault();
+					actions.editChatroom({
+						id: I.id,
+						view_isExtended: false,
+					});
+				},
+			}),
+		]),
+		node_dom("p",null,[
+			node_dom("span[innerText=Name: ]"),
+			node_dom("b",{innerText: I.name}),
+		]),
+		node_dom("p",null,[
+			node_dom("span[innerText=Beschreibung: ]"),
+			node_dom("b",{
+				innerText: I.description?I.description:"Keine",
+				S:{color: I.description?"":"red"}
+			}),
+		]),
+		node_dom("p",null,[
+			node_dom("span[innerText=Ersteller: ]"),
+			node_dom("b",{
+				innerText: I.createdUser?I.createdUser:"Server",
+				S:{color: I.createdUser?"":"green"}
+			}),
+		]),
+		node_dom("form",{
+			id: "form_chatroom_"+I.id,
+			onsubmit: event=>{
+				event.preventDefault(); // do not submit / reload page
+				const action=event.target.task.value;
+				
+				if(action==="join"){
+					changeChatroom(
+						I.id,
+						I.password
+						?	event.target.password.value
+						:	null
+					);
+				}
+				else if(action==="delete"){
+					if(!confirm("Möchten Sie wirklich '"+I.name+"' Löschen?")) return;
+					deleteChatroom(
+						I.id,
+						I.password
+						?	event.target.password.value
+						:	null
+					);
+				}
+				
+				
+			},
+		},[
+			node_dom("p",null,[
+				node_dom("span[innerText=Passwort: ]"),
+				node_dom("input[name=task][type=hidden][value=join]"),
+				
+				!I.password&&node_dom("input[name=password][type=hidden][value=0]"),
+				!I.password&&node_dom("b[innerText=Nicht gesetzt]"),
+
+				I.password&&
+				node_dom("input[name=password][type=password][autocomplete=new-password]"),
+			]),
+			node_dom("p",null,[
+				node_dom("button[innerText=JOIN!][type=submit]",{onclick: event=> event.target.form.task.value="join"}),
+				
+				I.createdUser===state.account.username&&
+				node_dom("button[innerText=Delete][type=submit]",{onclick: event=> event.target.form.task.value="delete"}),
+			]),
+		]),
+	]),
+
 ]}
 function ViewCreateChatroom({socket,state,actions}){return[
 	node_dom("h1[innerText=Chatraum Erstellen]"),
@@ -426,7 +525,7 @@ function ViewCreateChatroom({socket,state,actions}){return[
 		]),
 		node_dom("p",null,[
 			node_dom("label[innerText=Chatpasswort: ]",null,[
-				node_dom("input[placeholder=****][type=text][name=chatroom_password]"),
+				node_dom("input[type=password][name=chatroom_password][autocomplete=new-password]"),
 			]),
 		]),
 		node_dom("p",null,[
@@ -535,7 +634,12 @@ init(()=>{
 		socket.on("delete-chatroom",chatroom_id=>{
 			actions.removeChatroom(chatroom_id);	
 		});
-		socket.on("chatrooms",actions.setChatrooms);
+		socket.on("chatrooms",chatrooms=>
+			actions.setChatrooms(chatrooms.map(item=>({
+				...chatroomTemplate,
+				...item,
+			})))
+		);
 	});
 	hook_effect(()=>{
 		if(state.view==="chat"){

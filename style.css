@@ -8,9 +8,13 @@ body{
 	margin-bottom: 30px;
 }
 
-button,
-img.pointer{
+button, img.pointer{
 	cursor: pointer;
+}
+
+button{
+	margin-right: 5px;
+	padding: 3px;
 }
 
 #input_msg{
@@ -30,6 +34,7 @@ img.pointer{
 	font-size: 120%;
 	font-weight: bold;
 	font-family: Minecraft, sans-serif;
+	padding: 0;
 }
 
 #span_info{
@@ -46,8 +51,11 @@ h2.center{
 	text-align: center;
 }
 
-fieldset.chatroom_clientList{
+fieldset{
 	width: fit-content;
+	margin: 10px;
+}
+fieldset.chatroom_clientList{
 	margin: 0;
 	padding: 0;
 	padding: 15px;
