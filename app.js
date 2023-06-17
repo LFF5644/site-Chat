@@ -474,8 +474,6 @@ function Chatroom({I,state,actions}){return[
 						:	null
 					);
 				}
-				
-				
 			},
 		},[
 			node_dom("p",null,[
@@ -589,7 +587,8 @@ init(()=>{
 				user: client.user,
 				msg: client.user.nickname+" bettritt den Chatraum!",
 			});
-			sendMessage({
+			
+			if(document.hidden) sendMessage({
 				title: "Chat Raum Betreten",
 				text: client.user.nickname+" bettritt den Chatraum!",
 			});
@@ -600,7 +599,7 @@ init(()=>{
 				user: client.user,
 				msg: client.user.nickname+" Verlässt den Chatraum!",
 			});
-			sendMessage({
+			if(document.hidden) sendMessage({
 				title: "Chat Raum Verlassen",
 				text: client.user.nickname+" Verlässt den Chatraum!",
 			});
@@ -611,7 +610,7 @@ init(()=>{
 				user: client.user,
 				msg: client.user.nickname+" ist Online!",
 			});
-			sendMessage({
+			if(document.hidden) sendMessage({
 				title: "Online",
 				text: client.user.nickname+" ist Online!",
 			});
@@ -622,7 +621,7 @@ init(()=>{
 				user: client.user,
 				msg: client.user.nickname+" ist Offline!",
 			});
-			sendMessage({
+			if(document.hidden) sendMessage({
 				title: "Offline",
 				text: client.user.nickname+" ist Offline!",
 			});
