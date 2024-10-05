@@ -1,0 +1,38 @@
+{
+	"name":"Chat-Portal",
+	"description":"Schneller Online Chat noch ohne verlauf",
+	"short_name":"Chat",
+	"icons":[
+		{
+			"sizes":"144x144 any",
+			"type": "image/png",
+			"src":"/files/img/icon/Chat/chat144.png"
+		},
+		{
+			"sizes":"144x144 any",
+			"type": "image/png",
+			"src":"/files/img/icon/Chat/chat144.png"
+		},
+		{
+			"sizes":"64x64",
+			"type": "image/png",
+			"src":"/files/img/icon/Chat/chat64.png"
+		},
+		{
+			"sizes":"32x32",
+			"type": "image/png",
+			"src":"/files/img/icon/Chat/chat32.png"
+		},
+		{
+			"sizes":"16x16",
+			"type": "image/png",
+			"src":"/files/img/icon/Chat/chat16.png"
+		}
+	],
+	"scope":"/Chat/",
+	"start_url":"/Chat/?type=app",
+	"id":"/Chat/?type=app",
+	"display":"standalone",
+	"theme_color": "#103",
+	"background_color":"#103"
+}
