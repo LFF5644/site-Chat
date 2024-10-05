@@ -1,7 +1,8 @@
 <?
 	const {importHead}=globals.functions;
 	const {hostname}=require("os");
-	const isDev=hostname()!=="lff-raspberrypi";
+	const isDev=hostname()!=="lff-raspberrypi"&&!input.noDev;
+	const path="/p/Chat/";
 ?><!DOCTYPE html>
 <!--Created 09.03.2023 at 09:14-->
 <html>
@@ -12,17 +13,20 @@
 			tabs:2,
 			css:[
 				"/css/main.css",
-				"/p/Chat/style.css",
+				path+"style.css",
 			],
 			script:[
-				((input.useLocal||input.legacy)?"/files/other/socket.io/":"https://cdn.socket.io/4.5.4/")+"socket.io.min.js",
-				((input.useLocal||input.legacy)?"/files/other/lui/":"https://cdn.jsdelivr.net/gh/L3P3/lui@7c057f498ee8813053d7f7cff3af7141b53ced03/")+(isDev&&!input.legacy?"lui.dev.js":"lui.legacy.js"),
+				"https://cdn.socket.io/4.5.4/socket.io.min.js",
+				"https://cdn.jsdelivr.net/gh/L3P3/lui@7c057f498ee8813053d7f7cff3af7141b53ced03/"+(isDev&&!input.legacy?"lui.dev.js":"lui.js"),
+			],
+			scriptLegacy:[
+				"/files/other/lui/lui.legacy.js",
 			],
 		})?>
 	</head>
 	<body>
 		<h1>Web Frame Work ist beschädigt oder kaput!</h1>
 		<noscript><h1>UND JavaScript ist aus!</h1></noscript>
-		<script src=<?=((isDev||input.raw)&&!input.build)?"/p/Chat/app.js":"/p/Chat/build/app.js"?>></script>
+		<script src=<?=isDev?(path+"app.js"):input.legacy?(path+"build/app.legacy.js"):(path+"build/app.js")?>></script>
 	</body>
 </html>

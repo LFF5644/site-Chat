@@ -29,12 +29,21 @@ this.start=()=>{
 	this.clients={};
 
 	this.io=socketIo(23863,{
+		allowEIO3: true,	// legacy clients allow connect!
 		cors:{
 			origin:"*",
 		},
 	});
 	this.io.on("connect",socket=>{
-		const token=socket.handshake.auth.token;
+		let token;
+		_if:if(Number(socket.handshake.query.EIO)<4){ // old client new ist "4"
+			const cookies=socket.handshake.headers.cookie;
+			if(!cookies) break _if;
+			const cookie=cookies.split("; ").find(item=>item.startsWith("token="));
+			if(cookie) token=unescape(cookie.substring(6));
+		}
+		else token=socket.handshake.auth.token;
+		//console.log(socket.handshake);
 		const socketId=socket.id;
 		this.clients[socketId]={
 			account: null,

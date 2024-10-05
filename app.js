@@ -3,8 +3,8 @@
 */
 const lui=window.lui;
 const {
-	defer_end,
-	defer,
+	//defer_end,
+	//defer,
 	hook_effect,
 	hook_memo,
 	hook_model,
@@ -152,7 +152,7 @@ function getTime(time=Date.now()){
 }
 function getToken(){
 	const cookie=document.cookie.split("; ").find(item=>item.startsWith("token="));
-	if(cookie) return cookie.substring(6);
+	if(cookie) return unescape(cookie.substring(6));
 	return null;
 }
 function sendMessage(data){
@@ -185,22 +185,22 @@ function sendMessage(data){
 	};
 }
 function leaveChatroom(){
-	defer();
+	//defer();
 	socket.emit("leave-chatroom");
 	actions.setChatroom(null);
 	actions.clearHistory();
 	actions.setView("chatrooms");
-	defer_end();
+	//defer_end();
 }
 function changeChatroom(chatroom,password){
 	socket.emit("change-chatroom",chatroom,password,([success,error_code,error_message])=>{
 		if(success){
-			defer();
+			//defer();
 			actions.setChatroom(chatroom);
 			actions.clearHistory();
 			actions.setView("chat");
 			console.log("new Chatroom: "+chatroom);
-			defer_end();
+			//defer_end();
 		}
 		else{
 			alert(error_code+"\n"+error_message);
@@ -539,8 +539,9 @@ init(()=>{
 	const audio_msg=hook_memo(()=>new Audio("/files/sounds/ding.mp3"));
 	const socket=hook_memo(()=>{
 		const token=getToken();
+		console.log(token);
 		if(!token){
-			if(confirm("Sie sind NICHT angemeldet. Der Chat kann nur mit einem Account verwendet werden. Klicken Sie jetzt auf OK, um sich anzumelden!")) location.href="/account?goto=Chat";
+			if(confirm("Sie sind NICHT angemeldet. Der Chat kann nur mit einem Account verwendet werden. Klicken Sie jetzt auf OK, um sich anzumelden! connected: "+socket.connected)) location.href="/account?goto=Chat";
 			else history.back();
 			return;
 		}

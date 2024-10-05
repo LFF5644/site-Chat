@@ -1,8 +1,19 @@
 [
 	{
-		"type": "google-closure-compiler",
+		"file": "app.js",
+		"language": "ECMASCRIPT5",
+		"type": "google-closure-compiler"
+	},
+	{
+		"file_output": "build/app.legacy.js",
 		"file": "app.js",
 		"language": "ECMASCRIPT3",
-		"polyfills": false
+		"type": "google-closure-compiler"
+	},
+	{
+		"file_output": "build/socket.io.legacy.js",
+		"file": "../../files/other/socket.io/socket.io.legacy.js",
+		"language": "ECMASCRIPT3",
+		"type": "google-closure-compiler"
 	}
 ]
