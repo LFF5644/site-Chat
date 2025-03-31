@@ -298,6 +298,8 @@ this.start=()=>{
 			delete this.clients[socket.id];
 		});
 	});
+
+	this.saveInterval=setInterval(this.save,SAVE_INTERVAL);
 }
 this.changeClientObject=(socketId,key,to)=>{
 	this.clients[socketId][key]=to;
@@ -340,6 +342,7 @@ this.save=required=>{
 	this.shouldSave=[];
 }
 this.stop=()=>{
+	clearInterval(this.saveInterval);
 	this.io.close();
 	this.save(true);
 }
