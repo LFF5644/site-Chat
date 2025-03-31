@@ -193,17 +193,27 @@ function leaveChatroom(){
 	//defer_end();
 }
 function changeChatroom(chatroom,password){
-	socket.emit("change-chatroom",chatroom,password,([success,error_code,error_message])=>{
+	socket.emit("change-chatroom",chatroom,password,([success,...data])=>{
 		if(success){
 			//defer();
 			actions.setChatroom(chatroom);
 			actions.clearHistory();
 			actions.setView("chat");
 			console.log("new Chatroom: "+chatroom);
+			//console.log(data[0]); // logs all messages
+			for(const message of data[0]){
+				const {msg,id,user}=message;
+				actions.appendHistory({
+					id,
+					msg,
+					type: "msg",
+					user,
+				});
+			}
 			//defer_end();
 		}
 		else{
-			alert(error_code+"\n"+error_message);
+			alert(data[0]+"\n"+data[1]);
 			//actions.setView("chatrooms");
 		}
 	});
@@ -541,7 +551,7 @@ init(()=>{
 		const token=getToken();
 		console.log(token);
 		if(!token){
-			if(confirm("Sie sind NICHT angemeldet. Der Chat kann nur mit einem Account verwendet werden. Klicken Sie jetzt auf OK, um sich anzumelden! connected: "+socket.connected)) location.href="/account?goto=Chat";
+			if(confirm("Sie sind NICHT angemeldet. Der Chat kann nur mit einem Account verwendet werden. Klicken Sie jetzt auf OK, um sich anzumelden!")) location.href="/account?goto=Chat";
 			else history.back();
 			return;
 		}

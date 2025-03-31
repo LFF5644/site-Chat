@@ -1,44 +1,87 @@
 const {
 	tofsStr,
 }=globals.functions;
+
+const fs=require("fs");
 const crypto=require("crypto");
+
 const services={
 	account: service_require("server/account/account.new"),
 }
 const socketIo=require("socket.io");
 
+const SAVE_INTERVAL=1e3*60; // autosave every minute.
+const SAVE_FULL_INTERVAL=SAVE_INTERVAL*5; // saves each 5 hours all files force.
+const CHATROOMS_FILE=			"data/chat/chatrooms.json";
+const CHATROOM_MESSAGES_FILE=	"data/chat/chatroomMessages.json";
+
+const chatroomMessagesInit=()=>{
+	this.chatroomMessages=Object.fromEntries(
+		this.chatrooms.map(item=>
+			this.chatroomMessages[item.id]
+			?	[item.id, this.chatroomMessages[item.id]]
+			:	[item.id, []]
+		)
+	);
+};
+const shouldSave=value=>{
+	this.shouldSave=this.shouldSave.filter(item=>item!==value);
+	this.shouldSave.push(value);
+}
 this.start=()=>{
-	this.chatrooms=[
-		{
-			createdDate: Date.now(),
-			createdUser: null,
-			description: "Öffentlicher Chatraum",
-			id: "global",
-			name: "Öffentlich",
-			password: null,
-		},
-		{
-			createdDate: Date.now(),
-			createdUser: null,
-			description: "Administrator Chatraum",
-			id: "admin",
-			name: "Admin only",
-			password: this.createHash("4dm1n"),	// admin => 4dm1n
-		},
-	];
+	this.lastSave=Date.now(); // set to now because we load the data its the same.
+	this.shouldSave=[];
+	this.chatrooms=[];
+	this.chatroomMessages={};
+	//this.privateMessages={}; // future update (TODO) xD
 	this.clients={};
 
+	loadChatrooms:{
+		const default_chatrooms=[
+			{
+				createdDate: Date.now(),
+				createdUser: null,
+				description: "Öffentlicher Chatraum",
+				id: "global",
+				name: "Öffentlich",
+				password: null,
+			},
+			{
+				createdDate: Date.now(),
+				createdUser: null,
+				description: "Administrator Chatraum",
+				id: "admin",
+				name: "Admin only",
+				password: this.createHash("4dm1n"),	// admin => 4dm1n
+			},
+		];
+		try{
+			this.chatrooms=JSON.parse(fs.readFileSync(CHATROOMS_FILE)); // using SYNC method because of old rtjscomp version.
+		}catch(e){
+			log("Error while loading "+CHATROOMS_FILE+", "+e.message);
+			this.chatrooms=default_chatrooms;
+		}
+		try{
+			this.chatroomMessages=JSON.parse(fs.readFileSync(CHATROOM_MESSAGES_FILE));
+		}catch(e){
+			log("Error while loading "+CHATROOM_MESSAGES_FILE+", "+e.message);
+		}
+		//console.log(this.chatroomMessages);
+		chatroomMessagesInit();
+		//console.log(this.chatroomMessages);
+	}
+
 	this.io=socketIo(23863,{
-		allowEIO3: true,	// legacy clients allow connect!
+		allowEIO3: true,	// legacy clients allow to connect.
 		cors:{
 			origin:"*",
 		},
 	});
 	this.io.on("connect",socket=>{
 		let token;
-		_if:if(Number(socket.handshake.query.EIO)<4){ // old client new ist "4"
+		cookieCheck: if(Number(socket.handshake.query.EIO)<4){ // old client new ist "4"
 			const cookies=socket.handshake.headers.cookie;
-			if(!cookies) break _if;
+			if(!cookies) break cookieCheck;
 			const cookie=cookies.split("; ").find(item=>item.startsWith("token="));
 			if(cookie) token=unescape(cookie.substring(6));
 		}
@@ -63,7 +106,7 @@ this.start=()=>{
 		client=this.changeClientObject(socketId,"account",login.data.account);
 		client=this.changeClientObject(socketId,"accountIndex",login.data.accountIndex);
 
-		const send_clint={
+		const send_client={
 			chatroom: client.chatroom,
 			id: socketId,
 			user:{
@@ -71,8 +114,8 @@ this.start=()=>{
 				nickname: client.account.nickname,
 			},
 		};
-		socket.broadcast.emit("user-online",send_clint);
-		socket.broadcast.to(client.chatroom).emit("user-connect",send_clint);
+		socket.broadcast.emit("user-online",send_client);
+		socket.broadcast.to(client.chatroom).emit("user-connect",send_client);
 		const clients_send=[];
 		for(let key of Object.keys(this.clients)){
 			const client=this.clients[key];
@@ -97,15 +140,17 @@ this.start=()=>{
 			const {msg,id}=data;
 			const client=this.clients[socket.id];
 			if(!client.token) return;
-			socket.broadcast.to(client.chatroom).emit("msg",{
-				id: socketId,
+			const message_send={
+				id: id?id:Date.now(),
 				user:{
 					nickname: client.account.nickname,
 					username: client.account.username,
 				},
-				id: id?id:Date.now(),
 				msg,
-			});
+			};
+			socket.broadcast.to(client.chatroom).emit("msg",message_send);
+			this.chatroomMessages[client.chatroom].push(message_send);
+			shouldSave("chatroomMessages");
 			cb(true);
 		});
 		socket.on("change-chatroom",(chatroom_id,chatroom_password,callback)=>{
@@ -125,9 +170,12 @@ this.start=()=>{
 				}
 				socket.join(chatroom_id);
 				socket.broadcast.emit("user-change-chatroom",client_send);
-				socket.broadcast.to(chatroom_id).emit("user-connect",send_clint);
+				socket.broadcast.to(chatroom_id).emit("user-connect",client_send);
 				this.changeClientObject(socket.id,"chatroom",chatroom_id);
-				callback([true]);
+				callback([
+					true,
+					this.chatroomMessages[chatroom_id].slice(0,50) // send the last 50 messages to client
+				]);
 			};
 
 			const chatroom=this.chatrooms.find(item=>item.id===chatroom_id);
@@ -174,8 +222,11 @@ this.start=()=>{
 				callback([false,"Chatroom name existiert"]);
 				return;
 			}
-
+			//if(!this.chatroomMessages[chatroom_id]) this.chatroomMessages[chatroom_id]=[]; // makes possible to restore chatroomMessages later.
 			this.chatrooms.push(chatroom);
+			chatroomMessagesInit();
+			shouldSave("chatrooms");
+
 			const chatroom_send={
 				...chatroom,
 				password: Boolean(chatroom.password),
@@ -255,6 +306,40 @@ this.changeClientObject=(socketId,key,to)=>{
 this.createHash=(content,outputType="hex")=>{
 	return crypto.createHash("sha256").update(String(content)).digest(outputType);
 }
+this.save=required=>{
+	const now=Date.now();
+	const saveAllowed=now-this.lastSave>SAVE_INTERVAL;
+	required=now-this.lastSave>SAVE_FULL_INTERVAL || required;
+
+	if(!saveAllowed&&!required) return; // no save needed.
+
+	if(required||this.shouldSave.includes("chatrooms")){
+		log("Save: "+CHATROOMS_FILE);
+		try{
+			fs.writeFileSync(
+				CHATROOMS_FILE,
+				JSON.stringify(this.chatrooms,null,"\t")
+			);
+		}catch(e){
+			log("Error while writing "+CHATROOMS_FILE+", "+e);
+		}
+	}
+	if(required||this.shouldSave.includes("chatroomMessages")){
+		log("Save: "+CHATROOM_MESSAGES_FILE);
+		try{
+			fs.writeFileSync(
+				CHATROOM_MESSAGES_FILE,
+				JSON.stringify(this.chatroomMessages,null,"\t")
+			);
+		}catch(e){
+			log("Error while writing "+CHATROOM_MESSAGES_FILE+", "+e);
+		}
+	}
+
+	this.lastSave=now+1e3*3;
+	this.shouldSave=[];
+}
 this.stop=()=>{
 	this.io.close();
+	this.save(true);
 }
